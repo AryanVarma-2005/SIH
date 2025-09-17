@@ -4,7 +4,7 @@ import { useComplaints } from '../contexts/ComplaintContext';
 import { departments } from '../data/departments';
 
 const AdminDashboard: React.FC = () => {
-  const { complaints, updateComplaint } = useComplaints();
+  const { complaints, updateComplaint, loading } = useComplaints();
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,7 +167,12 @@ const AdminDashboard: React.FC = () => {
 
               {/* Complaints List */}
               <div className="p-6">
-                {filteredComplaints.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                    <p className="text-gray-500">Loading complaints...</p>
+                  </div>
+                ) : filteredComplaints.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-500">No complaints found</p>

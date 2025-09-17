@@ -17,7 +17,7 @@ const iconMap = {
 };
 
 const UserDashboard: React.FC = () => {
-  const { complaints } = useComplaints();
+  const { complaints, loading } = useComplaints();
   const { user } = useAuth();
 
   const userComplaints = complaints.filter(c => c.citizenId === user?.id);
@@ -137,7 +137,12 @@ const UserDashboard: React.FC = () => {
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Complaints</h2>
               
-                {recentComplaints.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                    <p className="text-gray-500">Loading complaints...</p>
+                  </div>
+                ) : recentComplaints.length === 0 ? (
                   <div className="text-center py-8">
                     <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-500">No complaints yet</p>

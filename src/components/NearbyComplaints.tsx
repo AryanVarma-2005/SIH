@@ -5,20 +5,20 @@ import { useAuth } from '../contexts/AuthContext';
 import { Complaint } from '../types';
 
 const NearbyComplaints: React.FC = () => {
-  const { getNearbyComplaints } = useComplaints();
+  const { getNearbyComplaints, loading: complaintsLoading } = useComplaints();
   const { user } = useAuth();
   const [nearbyComplaints, setNearbyComplaints] = useState<Complaint[]>([]);
   const [radius, setRadius] = useState(5);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(complaintsLoading);
 
   useEffect(() => {
     if (user?.location) {
-      setLoading(true);
+      setLoading(complaintsLoading);
       const nearby = getNearbyComplaints(user.location.lat, user.location.lng, radius);
       setNearbyComplaints(nearby);
       setLoading(false);
     }
-  }, [user, radius, getNearbyComplaints]);
+  }, [user, radius, getNearbyComplaints, complaintsLoading]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
