@@ -25,7 +25,7 @@ export interface Database {
         Insert: {
           id: string
           name: string
-          role?: 'citizen' | 'admin'
+          role: 'citizen' | 'admin'
           department?: string | null
           credits?: number
           location_lat?: number | null

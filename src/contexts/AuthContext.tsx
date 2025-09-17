@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { supabase, getCurrentUserProfile, upsertUserProfile } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -24,6 +24,41 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to get current user profile
+  const getCurrentUserProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    return profile;
+  };
+
+  // Helper function to create or update user profile
+  const upsertUserProfile = async (profileData: {
+    id: string;
+    name: string;
+    role?: 'citizen' | 'admin';
+    department?: string | null;
+    credits?: number;
+    location_lat?: number | null;
+    location_lng?: number | null;
+    location_address?: string | null;
+  }) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(profileData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  };
 
   // Initialize auth state
   React.useEffect(() => {
@@ -96,9 +131,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Check if profile exists, if not create one
       let profile = await getCurrentUserProfile();
       if (!profile) {
+        const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
         profile = await upsertUserProfile({
           id: data.user.id,
-          name: role === 'admin' ? 'Admin User' : 'User',
+          name: role === 'admin' ? 'Admin User' : userName,
           role,
           department: role === 'admin' ? 'Transportation' : undefined,
           credits: role === 'citizen' ? 100 : 0

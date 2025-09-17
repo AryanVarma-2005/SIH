@@ -207,9 +207,70 @@ export const ComplaintProvider: React.FC<{ children: ReactNode }> = ({ children 
       // Update user's total credits
       await supabase
         .from('profiles')
-        .update({ 
-          credits: supabase.raw(`credits + ${credits}`)
-        })
+        .rpc('increment_credits', { user_id: citizenId, credit_amount: credits });
+    } catch (error) {
+      console.error('Error awarding credits:', error);
+      throw error;
+    }
+  };
+
+  const updateComplaint = async (id: string, updates: Partial<Complaint>) => {
+    try {
+      const dbUpdates: any = {};
+      
+      if (updates.title) dbUpdates.title = updates.title;
+      if (updates.description) dbUpdates.description = updates.description;
+      if (updates.department) dbUpdates.department = updates.department;
+      if (updates.category) dbUpdates.category = updates.category;
+      if (updates.priority) dbUpdates.priority = updates.priority;
+      if (updates.status) dbUpdates.status = updates.status;
+      if (updates.assignedTo !== undefined) dbUpdates.assigned_to = updates.assignedTo;
+      if (updates.resolutionNotes !== undefined) dbUpdates.resolution_notes = updates.resolutionNotes;
+      if (updates.creditsAwarded !== undefined) dbUpdates.credits_awarded = updates.creditsAwarded;
+      if (updates.qualityRating !== undefined) dbUpdates.quality_rating = updates.qualityRating;
+      if (updates.location) {
+        dbUpdates.location_address = updates.location.address;
+        dbUpdates.location_lat = updates.location.coordinates?.lat;
+        dbUpdates.location_lng = updates.location.coordinates?.lng;
+      }
+
+      const { data, error } = await supabase
+        .from('complaints')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedComplaint = dbRowToComplaint(data);
+      setComplaints(prev =>
+        prev.map(complaint =>
+          complaint.id === id ? updatedComplaint : complaint
+        )
+      );
+
+      // If credits were awarded, update user's credits
+      if (updates.creditsAwarded !== undefined && user?.role === 'admin') {
+        const complaint = complaints.find(c => c.id === id);
+        if (complaint) {
+          // Credits are handled in awardCredits function
+        }
+      }
+    } catch (error) {
+      console.error('Error updating complaint:', error);
+      throw error;
+    }
+  };
+
+  const awardCredits = async (citizenId: string, credits: number, complaintId: string, rating: 'excellent' | 'good' | 'poor' | 'fake') => {
+    try {
+      // Update complaint with credits and rating
+      await updateComplaint(complaintId, { creditsAwarded: credits, qualityRating: rating });
+      
+      // Update user's total credits using RPC function
+      await supabase
+        .rpc('increment_credits', { user_id: citizenId, credit_amount: credits });
         .eq('id', citizenId);
     } catch (error) {
       console.error('Error awarding credits:', error);
