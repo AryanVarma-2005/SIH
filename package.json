@@ -3,7 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "description": "Civic Complaint Management Platform connecting citizens with local government",
-  "keywords": ["civic", "government", "complaints", "react", "typescript"],
+  "keywords": [
+    "civic",
+    "government",
+    "complaints",
+    "react",
+    "typescript"
+  ],
   "author": "CivicConnect Team",
   "license": "MIT",
   "homepage": "https://civicconnect-civic-c-o4ga.bolt.host",
